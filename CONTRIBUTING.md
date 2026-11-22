@@ -68,6 +68,16 @@ comunican con el servidor solo por mensajes o por su API, nunca importando su c�
 - Las pruebas de pantallas usan el simulador de usuario de NiceGUI
   (`nicegui.testing.user_simulation`), que no necesita navegador.
 
+### Componentes y mensajes
+
+- Usa los componentes de `mes_server/web/components.py` (`page_header`, `data_table`,
+  `form_dialog`, `confirm_dialog`, `info_dialog`, `icon_button`, `status_chip`) en lugar de
+  armar tablas y diálogos a mano.
+- Un catálogo nuevo se agrega como un `CatalogSpec` en `mes_server/web/catalog_pages.py`.
+- Los servicios lanzan errores con `code` y `field`; el texto en español vive en
+  `mes_server/web/messages.py`. Al agregar un código nuevo, agrega también su mensaje.
+- Marca con `.mark("...")` los botones y campos que usan las pruebas de pantallas.
+
 ### Estilos
 
 - Colores, tipografía y espaciados viven en `mes_server/web/static/css/theme.css`, con

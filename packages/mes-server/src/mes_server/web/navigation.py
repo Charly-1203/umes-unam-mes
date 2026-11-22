@@ -38,6 +38,7 @@ MODULES: tuple[Module, ...] = (
         "inventory_2",
         "Productos y listas de materiales.",
         Permission.MANAGE_PRODUCT_DEFINITION,
+        available=True,
     ),
     Module(
         "/stations",
@@ -45,6 +46,15 @@ MODULES: tuple[Module, ...] = (
         "precision_manufacturing",
         "Estaciones de trabajo de la línea.",
         Permission.MANAGE_PRODUCT_DEFINITION,
+        available=True,
+    ),
+    Module(
+        "/downtime-reasons",
+        "Motivos de paro",
+        "report_problem",
+        "Catálogo de causas de paro.",
+        Permission.MANAGE_PRODUCT_DEFINITION,
+        available=True,
     ),
     Module(
         "/recipes",

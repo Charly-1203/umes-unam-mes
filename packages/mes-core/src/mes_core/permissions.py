@@ -31,6 +31,9 @@ class Permission(StrEnum):
     OPERATE_STATION = "operate_station"
     """Execute work at a station."""
 
+    ADMINISTER_SYSTEM = "administer_system"
+    """Delete records and reset the system between courses."""
+
 
 ROLE_PERMISSIONS: Mapping[Role, frozenset[Permission]] = {
     Role.ADMIN: frozenset(Permission),

@@ -54,3 +54,12 @@ def test_unsupported_extension_is_ignored(tmp_path):
 )
 def test_initials(name, expected):
     assert initials(name) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"), [(None, "—"), ("", "—"), (0, "0"), (2.5, "2.5"), ("ST-10", "ST-10")]
+)
+def test_cell_text(value, expected):
+    from mes_server.web.components import cell_text
+
+    assert cell_text(value) == expected

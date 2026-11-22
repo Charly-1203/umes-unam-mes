@@ -134,6 +134,19 @@ Cada ejecución de un paso sobre una pieza genera un `execution_record`, incluid
 repetidos. Los registros no se modifican. El historial de una pieza es la lista de sus registros
 ordenada por hora de inicio.
 
+### Catálogos: desactivar y borrar
+
+Productos, estaciones y motivos de paro se **desactivan** cuando ya no se usan: dejan de
+ofrecerse para trabajo nuevo pero conservan su historia. Solo el administrador puede **borrar**,
+y solo los registros que nada referencia. La historia se limpia con el reinicio de curso. Ver
+[ADR 0008](adr/0008-desactivar-y-borrar-catalogos.md).
+
+| Catálogo | Lo referencian |
+|---|---|
+| Producto | Recetas y órdenes de trabajo |
+| Estación | Pasos de receta, registros de ejecución y paros |
+| Motivo de paro | Paros |
+
 ## Ciclos de vida
 
 ### Orden de trabajo
