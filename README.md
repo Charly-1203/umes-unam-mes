@@ -27,7 +27,8 @@ funcional** que muestre qué es un MES y cómo se integra con los demás niveles
    nivel 4                  nivel 3                    nivel 3 / 2                          niveles 1-2
 ```
 
-El detalle está en [docs/arquitectura.md](docs/arquitectura.md) y las decisiones de diseño en
+El detalle está en [docs/arquitectura.md](docs/arquitectura.md), el modelo de datos en
+[docs/modelo-de-datos.md](docs/modelo-de-datos.md) y las decisiones de diseño en
 [docs/adr](docs/adr).
 
 ## Estructura del repositorio
@@ -64,6 +65,22 @@ uv run pre-commit install --install-hooks
 `uv sync` crea el entorno virtual `.venv` e instala los cuatro paquetes en modo editable junto con
 las herramientas de desarrollo.
 
+## Base de datos
+
+Por defecto el servidor usa un archivo SQLite llamado `mes.db` en la carpeta desde donde se
+ejecuta. Para crearlo o actualizar su esquema:
+
+```powershell
+uv run mes-server db upgrade
+uv run mes-server db status
+```
+
+Para usar otra base de datos, define la variable `MES_DATABASE_URL` con una URL de SQLAlchemy:
+
+```powershell
+$env:MES_DATABASE_URL = "sqlite:///C:/datos/mes.db"
+```
+
 ## Comandos frecuentes
 
 | Acción | Comando |
@@ -73,10 +90,16 @@ las herramientas de desarrollo.
 | Revisar estilo | `uv run ruff check .` |
 | Dar formato | `uv run ruff format .` |
 | Ejecutar todas las verificaciones | `uv run pre-commit run --all-files` |
+| Crear o actualizar la base de datos | `uv run mes-server db upgrade` |
+| Ver la versión del esquema | `uv run mes-server db status` |
 | Versión de cada componente | `uv run mes-server --version`, `uv run mes-gateway --version`, `uv run mes-erp-sim --version` |
 
 ## Estado
 
-Versión `0.1.0`: estructura del repositorio, herramientas de calidad y pruebas base. Las
-funcionalidades se incorporan por etapas; consulta [CONTRIBUTING.md](CONTRIBUTING.md) para el
-flujo de trabajo.
+| Etapa | Contenido | Estado |
+|---|---|---|
+| Estructura | Monorepo, herramientas de calidad y pruebas base | Listo |
+| Modelo de dominio | Estados, ciclos de vida, límites, modelo de datos y migraciones | Listo |
+
+Las funcionalidades se incorporan por etapas; consulta [CONTRIBUTING.md](CONTRIBUTING.md) para
+el flujo de trabajo.

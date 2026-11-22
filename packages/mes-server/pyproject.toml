@@ -5,7 +5,9 @@ description = "MES server: web application, REST API and persistence."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "alembic>=1.20",
     "mes-core",
+    "sqlmodel>=0.0.50",
 ]
 
 [project.scripts]

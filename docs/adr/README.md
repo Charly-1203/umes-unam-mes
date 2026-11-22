@@ -17,3 +17,4 @@ sus consecuencias. Permiten entender, tiempo después, por qué el sistema es co
 | [0002](0002-interfaz-web-con-nicegui.md) | Interfaz web con NiceGUI | Aceptado |
 | [0003](0003-idioma-del-codigo-y-la-documentacion.md) | Idioma del código y la documentación | Aceptado |
 | [0004](0004-verificaciones-locales-con-pre-commit.md) | Verificaciones locales con pre-commit | Aceptado |
+| [0005](0005-persistencia-con-sqlite-sqlmodel-y-alembic.md) | Persistencia con SQLite, SQLModel y Alembic | Aceptado |

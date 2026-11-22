@@ -60,6 +60,8 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 # Tests document themselves through their names.
 "packages/*/tests/**" = ["D"]
+# Migration titles are free text typed when the revision is created.
+"packages/*/src/*/db/migrations/versions/**" = ["D415"]
 
 # ---------------------------------------------------------------------------
 # Pytest
