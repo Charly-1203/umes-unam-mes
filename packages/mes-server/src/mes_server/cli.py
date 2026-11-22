@@ -8,12 +8,16 @@ Commands:
     ``mes-server users create-admin``  Create an administrator, prompting for the password.
     ``mes-server users create``        Create a user with any role.
     ``mes-server users list``          List every user.
+    ``mes-server backup create``       Make a backup of the database now.
+    ``mes-server backup list``         List the backups.
+    ``mes-server course reset``        Back up, then delete the data of a course.
 """
 
 import argparse
 import getpass
 import sys
 from collections.abc import Callable, Sequence
+from pathlib import Path
 
 from sqlalchemy.engine import make_url
 from sqlmodel import Session
@@ -22,13 +26,16 @@ from mes_core.enums import Role
 from mes_server import __version__
 from mes_server.config import Settings
 from mes_server.db import create_db_engine, migrate, session_scope
+from mes_server.services import audit, backups, course_reset
 from mes_server.services import users as user_service
+from mes_server.services.course_reset import CONFIRMATION_WORD, ResetLevel
 from mes_server.services.errors import ServiceError
 
 PROG = "mes-server"
 DESCRIPTION = "MES server: web application, REST API and persistence."
 
 PasswordPrompt = Callable[[str], str]
+Prompt = Callable[[str], str]
 
 
 def display_url(database_url: str) -> str:
@@ -80,6 +87,29 @@ def build_parser() -> argparse.ArgumentParser:
     create.add_argument("--role", required=True, choices=[role.value for role in Role])
     list_ = user_commands.add_parser("list", help="List every user.")
     list_.add_argument("--database-url", help=url_help)
+
+    backup = commands.add_parser("backup", help="Back up the database.")
+    backup_commands = backup.add_subparsers(dest="backup_command", metavar="ACTION", required=True)
+    for name, text in (("create", "Make a backup now."), ("list", "List the backups.")):
+        sub = backup_commands.add_parser(name, help=text)
+        sub.add_argument("--database-url", help=url_help)
+
+    course = commands.add_parser("course", help="Course administration.")
+    course_commands = course.add_subparsers(dest="course_command", metavar="ACTION", required=True)
+    reset = course_commands.add_parser(
+        "reset", help="Back up the database, then delete the data of a course."
+    )
+    reset.add_argument("--database-url", help=url_help)
+    reset.add_argument(
+        "--level",
+        required=True,
+        choices=[level.value for level in ResetLevel],
+        help="production: orders and history; catalogs: also products, recipes and downtime "
+        "reasons; everything: also every non-administrator user.",
+    )
+    reset.add_argument(
+        "--yes", action="store_true", help=f"Do not ask to type {CONFIRMATION_WORD}."
+    )
     return parser
 
 
@@ -174,16 +204,99 @@ def _run_serve(args: argparse.Namespace) -> int:  # pragma: no cover - starts a 
     host = args.host or settings.host
     port = args.port or settings.port
     print(f"UNAM-MES listening on http://{host}:{port}  (database: {display_url(url)})")
-    run(create_db_engine(url), host=host, port=port, storage_secret=settings.storage_secret)
+    run(
+        create_db_engine(url),
+        host=host,
+        port=port,
+        storage_secret=settings.storage_secret,
+        database_url=url,
+        backup_dir=settings.resolve_backup_dir(url),
+    )
     return 0
 
 
-def main(argv: Sequence[str] | None = None, *, prompt: PasswordPrompt = getpass.getpass) -> int:
+def _backup_dir(url: str) -> Path | None:
+    directory = Settings.from_env().resolve_backup_dir(url)
+    if directory is None:
+        print("Backups are only available for SQLite database files.", file=sys.stderr)
+    return directory
+
+
+def _run_backup(args: argparse.Namespace) -> int:
+    url = _database_url(args)
+    directory = _backup_dir(url)
+    if directory is None:
+        return 1
+    if args.backup_command == "list":
+        for info in backups.list_backups(directory):
+            print(
+                f"{info.file_name:<48} {info.created_at:%Y-%m-%d %H:%M} "
+                f"{info.created_by:<16} {info.reason}"
+            )
+        return 0
+    if not _require_current_schema(url):
+        return 1
+    engine = create_db_engine(url)
+    try:
+        info = course_reset.backup_now(
+            engine, url, directory, actor=audit.TERMINAL_ACTOR, actor_role=Role.ADMIN
+        )
+    except ServiceError as error:
+        print(f"Error: {error}", file=sys.stderr)
+        return 1
+    finally:
+        engine.dispose()
+    print(f"Backup created: {info.path}")
+    return 0
+
+
+def _run_course(args: argparse.Namespace, ask: Prompt) -> int:
+    url = _database_url(args)
+    directory = _backup_dir(url)
+    if directory is None or not _require_current_schema(url):
+        return 1
+    level = ResetLevel(args.level)
+    engine = create_db_engine(url)
+    try:
+        with Session(engine) as session:
+            counts = course_reset.preview(session, level)
+        summary = ", ".join(f"{count} {table}" for table, count in counts.items()) or "nothing"
+        print(f"Level '{level.value}' will delete: {summary}.")
+        confirmation = (
+            CONFIRMATION_WORD if args.yes else ask(f"Type {CONFIRMATION_WORD} to continue: ")
+        )
+        try:
+            result = course_reset.reset_course(
+                engine,
+                url,
+                directory,
+                level,
+                actor=audit.TERMINAL_ACTOR,
+                actor_role=Role.ADMIN,
+                confirmation=confirmation,
+            )
+        except ServiceError as error:
+            print(f"Error: {error} Nothing was deleted.", file=sys.stderr)
+            return 1
+    finally:
+        engine.dispose()
+    print(f"Backup created first: {result.backup.path}")
+    print("Course reset complete.")
+    return 0
+
+
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    prompt: PasswordPrompt = getpass.getpass,
+    ask: Prompt = input,
+) -> int:
     """Run the command-line interface.
 
     Args:
         argv: Arguments to parse. ``None`` reads them from ``sys.argv``.
         prompt: Function that reads a password without echoing it.
+        ask: Function that reads a line of text, used for confirmations.
 
     Returns:
         The process exit code.
@@ -193,6 +306,10 @@ def main(argv: Sequence[str] | None = None, *, prompt: PasswordPrompt = getpass.
         return _run_db(args)
     if args.command == "users":
         return _run_users(args, prompt)
+    if args.command == "backup":
+        return _run_backup(args)
+    if args.command == "course":
+        return _run_course(args, ask)
     if args.command == "serve":
         return _run_serve(args)
     print(f"{PROG} {__version__}")

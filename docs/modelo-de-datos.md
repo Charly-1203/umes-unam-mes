@@ -93,6 +93,7 @@ erDiagram
 | Registro de ejecución | `execution_records` | Resultado de un paso sobre una pieza | Rendimiento de producción |
 | Motivo de paro | `downtime_reasons` | Catálogo de causas de paro | Recursos de equipo |
 | Evento de paro | `downtime_events` | Periodo en que una estación no produjo | Rendimiento de producción |
+| Entrada de bitácora | `audit_entries` | Acción administrativa: respaldo o reinicio de curso | — |
 
 ## Conceptos clave
 
@@ -146,6 +147,12 @@ y solo los registros que nada referencia. La historia se limpia con el reinicio 
 | Producto | Recetas y órdenes de trabajo |
 | Estación | Pasos de receta, registros de ejecución y paros |
 | Motivo de paro | Paros |
+
+### Bitácora
+
+`audit_entries` registra las acciones administrativas (respaldos y reinicios de curso). Guarda al
+autor como texto, no como referencia a `users`, para que la entrada sobreviva aunque el usuario
+se borre. Ningún reinicio la borra.
 
 ## Ciclos de vida
 

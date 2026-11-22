@@ -4,6 +4,7 @@ Services raise errors with a stable ``code`` and, when it applies, the ``field``
 module turns them into the sentences users read, so the wording lives in one place.
 """
 
+from mes_server.auth.passwords import MIN_PASSWORD_LENGTH
 from mes_server.services.errors import ServiceError
 
 FIELD_LABELS: dict[str, str] = {
@@ -16,6 +17,9 @@ FIELD_LABELS: dict[str, str] = {
     "username": "El usuario",
     "password": "La contraseña",
     "full_name": "El nombre completo",
+    "role": "El rol",
+    "password_confirm": "La confirmación",
+    "confirmation": "La confirmación",
 }
 """How each input field is named at the start of a sentence."""
 
@@ -27,6 +31,20 @@ REFERENCE_LABELS: dict[str, tuple[str, str]] = {
     "downtime events": ("paro", "paros"),
 }
 """Singular and plural Spanish names of the records that can reference a catalog entry."""
+
+TABLE_LABELS: dict[str, str] = {
+    "work_orders": "órdenes de trabajo",
+    "units": "piezas",
+    "execution_records": "registros de ejecución",
+    "downtime_events": "paros",
+    "recipe_steps": "pasos de receta",
+    "recipes": "recetas",
+    "bom_items": "componentes de listas de materiales",
+    "products": "productos",
+    "downtime_reasons": "motivos de paro",
+    "users": "usuarios",
+}
+"""Spanish names of the tables a course reset empties."""
 
 GENERIC_ERROR = "No se pudo completar la acción."
 
@@ -77,7 +95,17 @@ def describe(error: ServiceError) -> str:
                 "punto, guion o guion bajo."
             )
         case "password_too_short":
-            return "La contraseña es demasiado corta."
+            return f"La contraseña debe tener al menos {MIN_PASSWORD_LENGTH} caracteres."
+        case "password_mismatch":
+            return "Las contraseñas no coinciden."
+        case "self_action":
+            return "No puedes hacer esto con tu propia cuenta."
+        case "last_admin":
+            return "Debe quedar al menos un administrador activo."
+        case "confirmation":
+            return "Escribe la palabra de confirmación exactamente como se indica."
+        case "backup_failed":
+            return "No se pudo crear el respaldo. No se borró ningún dato."
         case _:
             return GENERIC_ERROR
 

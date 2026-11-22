@@ -93,6 +93,7 @@ El servidor se configura con variables de entorno:
 | `MES_HOST` | `127.0.0.1` | Dirección de escucha; usa `0.0.0.0` para aceptar conexiones de otras computadoras del laboratorio |
 | `MES_PORT` | `8080` | Puerto del servidor web |
 | `MES_STORAGE_SECRET` | aleatorio en cada arranque | Firma la cookie de sesión; defínelo para que los usuarios no pierdan la sesión al reiniciar |
+| `MES_BACKUP_DIR` | `respaldos` junto a `mes.db` | Carpeta de respaldos |
 
 Ejemplo en PowerShell:
 
@@ -101,6 +102,33 @@ $env:MES_HOST = "0.0.0.0"
 $env:MES_STORAGE_SECRET = "una-cadena-larga-y-dificil-de-adivinar"
 uv run mes-server serve
 ```
+
+## Fin de curso: respaldos y reinicio
+
+Al terminar un curso, el administrador entra a **Administración** y elige un nivel de reinicio:
+
+| Nivel | Borra | Conserva |
+|---|---|---|
+| Producción | Órdenes, piezas, registros de ejecución y paros | Catálogos, recetas y usuarios |
+| Producción y catálogos | Además productos, recetas y motivos de paro | Estaciones y usuarios |
+| Todo | Además los usuarios que no son administradores | Estaciones y administradores |
+
+Antes de borrar se crea un respaldo en `respaldos/`, que se puede descargar desde la misma
+pantalla. Lo mismo desde la terminal:
+
+```powershell
+uv run mes-server backup create
+uv run mes-server backup list
+uv run mes-server course reset --level production
+```
+
+Para restaurar un respaldo (todavía no disponible desde la aplicación):
+
+1. Detén el servidor y guarda aparte el `mes.db` actual.
+2. Copia el respaldo elegido en lugar de `mes.db`.
+3. Ejecuta `uv run mes-server db upgrade` e inicia el servidor.
+
+Detalles en el [ADR 0009](docs/adr/0009-respaldos-y-reinicio-de-curso.md).
 
 ## Escudos institucionales
 
@@ -128,6 +156,8 @@ Mientras no existan, la aplicación muestra un ícono genérico.
 | Ver la versión del esquema | `uv run mes-server db status` |
 | Crear el primer administrador | `uv run mes-server users create-admin` |
 | Listar usuarios | `uv run mes-server users list` |
+| Crear un respaldo | `uv run mes-server backup create` |
+| Reiniciar el curso | `uv run mes-server course reset --level production` |
 | Versión de cada componente | `uv run mes-server --version`, `uv run mes-gateway --version`, `uv run mes-erp-sim --version` |
 
 ## Estado
@@ -139,6 +169,7 @@ Mientras no existan, la aplicación muestra un ícono genérico.
 | Acceso | Inicio de sesión, roles, permisos y menú por rol | Listo |
 | Identidad visual | Paleta UNAM, tipografía, menú lateral y pantallas responsivas | Listo |
 | Catálogos | Productos con lista de materiales, estaciones y motivos de paro | Listo |
+| Administración | Usuarios, respaldos, reinicio de curso y bitácora | Listo |
 
 Las funcionalidades se incorporan por etapas; consulta [CONTRIBUTING.md](CONTRIBUTING.md) para
 el flujo de trabajo.

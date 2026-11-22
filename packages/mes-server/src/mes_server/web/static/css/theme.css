@@ -499,3 +499,7 @@ body {
 .mes-input-readonly .q-field__control {
   background: #f1f4f9;
 }
+
+.mes-panel--danger {
+  border-top: 4px solid #c10015;
+}

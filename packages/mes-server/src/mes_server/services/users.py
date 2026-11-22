@@ -11,7 +11,8 @@ from mes_server.auth.passwords import (
     hash_password,
     verify_password,
 )
-from mes_server.db.models import User
+from mes_server.db.models import DowntimeEvent, ExecutionRecord, User
+from mes_server.services import catalog
 from mes_server.services.errors import AlreadyExistsError, ValidationError
 
 USERNAME_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
@@ -181,3 +182,160 @@ def count_active_admins(session: Session) -> int:
         .where(User.role == Role.ADMIN, User.is_active == True)  # noqa: E712
     )
     return session.exec(statement).one()
+
+
+# ---------------------------------------------------------------------------------------------
+# Administration
+# ---------------------------------------------------------------------------------------------
+REFERENCES = (
+    catalog.Reference("execution records", ExecutionRecord.operator_id),
+    catalog.Reference("downtime events", DowntimeEvent.reported_by_id),
+)
+"""Records that point at a user and therefore keep it from being deleted."""
+
+
+def get_user(session: Session, user_id: int) -> User:
+    """Load a user.
+
+    Args:
+        session: Open database session.
+        user_id: Primary key.
+
+    Returns:
+        The user.
+
+    Raises:
+        NotFoundError: If it does not exist.
+    """
+    return catalog.get_or_raise(session, User, user_id)
+
+
+def _is_last_active_admin(session: Session, user: User) -> bool:
+    return user.role == Role.ADMIN and user.is_active and count_active_admins(session) <= 1
+
+
+def _ensure_not_self(user_id: int, actor_id: int, message: str) -> None:
+    if user_id == actor_id:
+        raise ValidationError(message, code="self_action")
+
+
+def update_user(
+    session: Session, user_id: int, *, full_name: str, role: Role, actor_id: int
+) -> User:
+    """Change a user's name and role.
+
+    Args:
+        session: Open database session. The caller commits.
+        user_id: User to change.
+        full_name: New name shown on screens.
+        role: New role.
+        actor_id: Id of the administrator making the change.
+
+    Returns:
+        The updated user.
+
+    Raises:
+        NotFoundError: If the user does not exist.
+        ValidationError: If the name is blank, the administrator changes their own role, or
+            the change would leave no active administrator.
+    """
+    user = get_user(session, user_id)
+    new_role = Role(role)
+    if new_role != user.role:
+        _ensure_not_self(user_id, actor_id, "You cannot change your own role.")
+        if _is_last_active_admin(session, user):
+            raise ValidationError(
+                "At least one active administrator is required.", code="last_admin"
+            )
+    if not full_name.strip():
+        raise ValidationError("Full name must not be blank.", code="blank", field="full_name")
+    user.full_name = full_name.strip()
+    user.role = new_role
+    session.add(user)
+    return user
+
+
+def set_user_active(session: Session, user_id: int, active: bool, *, actor_id: int) -> User:
+    """Activate or deactivate a user. Inactive users cannot sign in.
+
+    Args:
+        session: Open database session. The caller commits.
+        user_id: User to change.
+        active: New state.
+        actor_id: Id of the administrator making the change.
+
+    Returns:
+        The user.
+
+    Raises:
+        NotFoundError: If the user does not exist.
+        ValidationError: If administrators deactivate themselves or the last active
+            administrator.
+    """
+    user = get_user(session, user_id)
+    if not active:
+        _ensure_not_self(user_id, actor_id, "You cannot deactivate yourself.")
+        if _is_last_active_admin(session, user):
+            raise ValidationError(
+                "At least one active administrator is required.", code="last_admin"
+            )
+    user.is_active = active
+    session.add(user)
+    return user
+
+
+def set_password(session: Session, user_id: int, password: str) -> User:
+    """Replace a user's password.
+
+    Args:
+        session: Open database session. The caller commits.
+        user_id: User to change.
+        password: New clear-text password; only its hash is stored.
+
+    Returns:
+        The user.
+
+    Raises:
+        NotFoundError: If the user does not exist.
+        ValidationError: If the password is too short.
+    """
+    user = get_user(session, user_id)
+    validate_password(password)
+    user.password_hash = hash_password(password)
+    session.add(user)
+    return user
+
+
+def user_usage(session: Session, user_id: int) -> dict[str, int]:
+    """Count the records that reference a user.
+
+    Args:
+        session: Open database session.
+        user_id: Primary key.
+
+    Returns:
+        Non-zero counts keyed by reference label.
+    """
+    return catalog.count_references(session, user_id, REFERENCES)
+
+
+def delete_user(session: Session, user_id: int, *, actor_role: Role, actor_id: int) -> None:
+    """Delete a user without history.
+
+    Args:
+        session: Open database session. The caller commits.
+        user_id: User to delete.
+        actor_role: Role of who asks for the deletion.
+        actor_id: Id of who asks for the deletion.
+
+    Raises:
+        NotFoundError: If the user does not exist.
+        PermissionDeniedError: If the role is not an administrator.
+        ValidationError: If administrators delete themselves or the last active administrator.
+        InUseError: If executions or downtime events reference the user.
+    """
+    user = get_user(session, user_id)
+    _ensure_not_self(user_id, actor_id, "You cannot delete yourself.")
+    if _is_last_active_admin(session, user):
+        raise ValidationError("At least one active administrator is required.", code="last_admin")
+    catalog.delete_unused(session, user, user_id, REFERENCES, actor_role=actor_role)

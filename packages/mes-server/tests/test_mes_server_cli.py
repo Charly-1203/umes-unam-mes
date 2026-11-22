@@ -178,3 +178,98 @@ def test_inactive_users_are_listed_as_inactive(upgraded_db, capsys):
     capsys.readouterr()
     main(["users", "list", "--database-url", upgraded_db])
     assert "inactive" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------------------------------------
+# backup and course
+# ---------------------------------------------------------------------------------------------
+def seed_order(url):
+    from mes_server.db.models import Product, WorkOrder
+
+    engine = create_db_engine(url)
+    with Session(engine) as session:
+        product = Product(code="P-1", name="Producto")
+        session.add(product)
+        session.flush()
+        session.add(WorkOrder(order_number="WO-1", product_id=product.id, quantity=1))
+        session.commit()
+    engine.dispose()
+
+
+def count_orders(url):
+    from mes_server.db.models import WorkOrder
+
+    engine = create_db_engine(url)
+    with Session(engine) as session:
+        total = len(session.exec(select(WorkOrder)).all())
+    engine.dispose()
+    return total
+
+
+def test_backup_create_and_list(upgraded_db, tmp_path, capsys):
+    assert main(["backup", "create", "--database-url", upgraded_db]) == 0
+    assert "Backup created" in capsys.readouterr().out
+    assert len(list((tmp_path / "respaldos").glob("*.db"))) == 1
+    assert main(["backup", "list", "--database-url", upgraded_db]) == 0
+    assert "terminal" in capsys.readouterr().out
+
+
+def test_backup_dir_can_be_configured(upgraded_db, tmp_path, monkeypatch):
+    monkeypatch.setenv("MES_BACKUP_DIR", str(tmp_path / "otra"))
+    main(["backup", "create", "--database-url", upgraded_db])
+    assert len(list((tmp_path / "otra").glob("*.db"))) == 1
+
+
+def test_backup_requires_a_sqlite_file(capsys):
+    assert main(["backup", "create", "--database-url", "sqlite://"]) == 1
+    assert "only available" in capsys.readouterr().err
+
+
+def test_backup_requires_an_up_to_date_schema(file_db_url, capsys):
+    assert main(["backup", "create", "--database-url", file_db_url]) == 1
+
+
+def test_course_reset_asks_for_confirmation(upgraded_db, tmp_path, capsys):
+    seed_order(upgraded_db)
+    code = main(
+        ["course", "reset", "--database-url", upgraded_db, "--level", "production"],
+        ask=lambda _prompt: "REINICIAR",
+    )
+    assert code == 0
+    output = capsys.readouterr().out
+    assert "1 work_orders" in output
+    assert "Course reset complete." in output
+    assert count_orders(upgraded_db) == 0
+    assert len(list((tmp_path / "respaldos").glob("*.db"))) == 1
+
+
+def test_course_reset_aborts_without_the_word(upgraded_db, capsys):
+    seed_order(upgraded_db)
+    code = main(
+        ["course", "reset", "--database-url", upgraded_db, "--level", "everything"],
+        ask=lambda _prompt: "no",
+    )
+    assert code == 1
+    assert "Nothing was deleted" in capsys.readouterr().err
+    assert count_orders(upgraded_db) == 1
+
+
+def test_course_reset_with_yes_skips_the_question(upgraded_db):
+    seed_order(upgraded_db)
+
+    def fail(_prompt):
+        raise AssertionError("should not ask")
+
+    assert (
+        main(
+            ["course", "reset", "--database-url", upgraded_db, "--level", "catalogs", "--yes"],
+            ask=fail,
+        )
+        == 0
+    )
+    assert count_orders(upgraded_db) == 0
+
+
+def test_course_reset_requires_a_valid_level(upgraded_db):
+    with pytest.raises(SystemExit):
+        main(["course", "reset", "--database-url", upgraded_db, "--level", "all"])

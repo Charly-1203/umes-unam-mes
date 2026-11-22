@@ -21,3 +21,4 @@ sus consecuencias. Permiten entender, tiempo después, por qué el sistema es co
 | [0006](0006-autenticacion-y-permisos-por-rol.md) | Autenticación y permisos por rol | Aceptado |
 | [0007](0007-identidad-visual.md) | Identidad visual | Aceptado |
 | [0008](0008-desactivar-y-borrar-catalogos.md) | Desactivar y borrar registros de catálogo | Aceptado |
+| [0009](0009-respaldos-y-reinicio-de-curso.md) | Respaldos y reinicio de curso | Aceptado |
