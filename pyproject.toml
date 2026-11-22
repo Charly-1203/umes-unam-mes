@@ -16,6 +16,7 @@ dev = [
     "packaging>=25.0",
     "pre-commit>=4.7",
     "pytest>=9.2",
+    "pytest-asyncio>=1.0",
     "pytest-cov>=7.0",
     "ruff>=0.17.5",
 ]
@@ -69,6 +70,8 @@ convention = "google"
 [tool.pytest.ini_options]
 testpaths = ["packages"]
 addopts = ["--import-mode=importlib", "-ra", "--strict-markers"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 source_pkgs = ["mes_core", "mes_server", "mes_gateway", "mes_erp_sim"]

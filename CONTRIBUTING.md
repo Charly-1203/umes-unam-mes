@@ -30,6 +30,7 @@ Instálalas una sola vez por clon con `uv run pre-commit install --install-hooks
 
 - **Código en inglés**: nombres, docstrings, comentarios y mensajes de error.
 - **Documentación en español**: README, guías y ADR, pensados para el curso.
+- **Interfaz en español**: todo texto que ve el usuario final en las pantallas.
 
 ### Código
 
@@ -57,6 +58,24 @@ comunican con el servidor solo por mensajes o por su API, nunca importando su c�
   `test_<modulo>_<tema>.py`.
 - El nombre de cada prueba describe el comportamiento esperado.
 - Toda funcionalidad nueva incluye sus pruebas en el mismo pull request.
+
+### Pantallas
+
+- Las pantallas solo acomodan componentes y llaman a servicios; las reglas de negocio van en
+  `mes_server/services`.
+- Cada sección nueva se registra en `mes_server/web/navigation.py` con el permiso que requiere;
+  el menú, la página de inicio y el control de acceso se generan a partir de esa lista.
+- Las pruebas de pantallas usan el simulador de usuario de NiceGUI
+  (`nicegui.testing.user_simulation`), que no necesita navegador.
+
+### Estilos
+
+- Colores, tipografía y espaciados viven en `mes_server/web/static/css/theme.css`, con
+  variables `--mes-*` y clases `mes-*`. Las pantallas usan esas clases; evita estilos sueltos
+  con `.style(...)`.
+- Usa los colores por su variable (`var(--mes-primary)`), nunca el valor directo.
+- El oro (`--mes-accent`) es solo para acentos: como texto sobre blanco no se lee bien.
+- Verifica cada pantalla nueva también a 390 px de ancho (celular).
 
 ### Cambios al modelo de datos
 

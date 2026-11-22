@@ -18,3 +18,5 @@ sus consecuencias. Permiten entender, tiempo después, por qué el sistema es co
 | [0003](0003-idioma-del-codigo-y-la-documentacion.md) | Idioma del código y la documentación | Aceptado |
 | [0004](0004-verificaciones-locales-con-pre-commit.md) | Verificaciones locales con pre-commit | Aceptado |
 | [0005](0005-persistencia-con-sqlite-sqlmodel-y-alembic.md) | Persistencia con SQLite, SQLModel y Alembic | Aceptado |
+| [0006](0006-autenticacion-y-permisos-por-rol.md) | Autenticación y permisos por rol | Aceptado |
+| [0007](0007-identidad-visual.md) | Identidad visual | Aceptado |

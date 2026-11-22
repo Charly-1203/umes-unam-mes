@@ -65,21 +65,54 @@ uv run pre-commit install --install-hooks
 `uv sync` crea el entorno virtual `.venv` e instala los cuatro paquetes en modo editable junto con
 las herramientas de desarrollo.
 
-## Base de datos
-
-Por defecto el servidor usa un archivo SQLite llamado `mes.db` en la carpeta desde donde se
-ejecuta. Para crearlo o actualizar su esquema:
+## Primer arranque
 
 ```powershell
-uv run mes-server db upgrade
-uv run mes-server db status
+uv run mes-server db upgrade         # crea mes.db con el esquema actual
+uv run mes-server users create-admin # pide la contraseña del usuario "admin"
+uv run mes-server serve              # abre http://127.0.0.1:8080
 ```
 
-Para usar otra base de datos, define la variable `MES_DATABASE_URL` con una URL de SQLAlchemy:
+Para probar los distintos roles, crea más usuarios:
 
 ```powershell
-$env:MES_DATABASE_URL = "sqlite:///C:/datos/mes.db"
+uv run mes-server users create --username ingeniero --full-name "Ingeniera Demo" --role process_engineer
+uv run mes-server users create --username supervisor --full-name "Supervisor Demo" --role supervisor
+uv run mes-server users list
 ```
+
+Roles disponibles: `admin`, `process_engineer`, `supervisor` y `operator`.
+
+## Configuración
+
+El servidor se configura con variables de entorno:
+
+| Variable | Valor por defecto | Uso |
+|---|---|---|
+| `MES_DATABASE_URL` | `sqlite:///mes.db` | Base de datos (URL de SQLAlchemy) |
+| `MES_HOST` | `127.0.0.1` | Dirección de escucha; usa `0.0.0.0` para aceptar conexiones de otras computadoras del laboratorio |
+| `MES_PORT` | `8080` | Puerto del servidor web |
+| `MES_STORAGE_SECRET` | aleatorio en cada arranque | Firma la cookie de sesión; defínelo para que los usuarios no pierdan la sesión al reiniciar |
+
+Ejemplo en PowerShell:
+
+```powershell
+$env:MES_HOST = "0.0.0.0"
+$env:MES_STORAGE_SECRET = "una-cadena-larga-y-dificil-de-adivinar"
+uv run mes-server serve
+```
+
+## Escudos institucionales
+
+El repositorio no incluye escudos. Para mostrarlos, coloca los archivos oficiales en
+`packages/mes-server/src/mes_server/web/static/branding/`:
+
+| Archivo | Dónde aparece |
+|---|---|
+| `escudo-unam.svg` | Menú lateral y pantalla de inicio de sesión |
+| `escudo-dependencia.svg` | Pantalla de inicio de sesión |
+
+Mientras no existan, la aplicación muestra un ícono genérico.
 
 ## Comandos frecuentes
 
@@ -90,8 +123,11 @@ $env:MES_DATABASE_URL = "sqlite:///C:/datos/mes.db"
 | Revisar estilo | `uv run ruff check .` |
 | Dar formato | `uv run ruff format .` |
 | Ejecutar todas las verificaciones | `uv run pre-commit run --all-files` |
+| Iniciar el servidor web | `uv run mes-server serve` |
 | Crear o actualizar la base de datos | `uv run mes-server db upgrade` |
 | Ver la versión del esquema | `uv run mes-server db status` |
+| Crear el primer administrador | `uv run mes-server users create-admin` |
+| Listar usuarios | `uv run mes-server users list` |
 | Versión de cada componente | `uv run mes-server --version`, `uv run mes-gateway --version`, `uv run mes-erp-sim --version` |
 
 ## Estado
@@ -100,6 +136,8 @@ $env:MES_DATABASE_URL = "sqlite:///C:/datos/mes.db"
 |---|---|---|
 | Estructura | Monorepo, herramientas de calidad y pruebas base | Listo |
 | Modelo de dominio | Estados, ciclos de vida, límites, modelo de datos y migraciones | Listo |
+| Acceso | Inicio de sesión, roles, permisos y menú por rol | Listo |
+| Identidad visual | Paleta UNAM, tipografía, menú lateral y pantallas responsivas | Listo |
 
 Las funcionalidades se incorporan por etapas; consulta [CONTRIBUTING.md](CONTRIBUTING.md) para
 el flujo de trabajo.

@@ -23,6 +23,17 @@ Nivel 1-2 Control             ──►  PLC              (real o simulado)
 Servidor central. Contiene la lógica del MES, la base de datos, la aplicación web y el servicio
 de mensajería con las estaciones.
 
+Internamente se organiza en capas; cada una solo usa las de abajo:
+
+| Capa | Paquete | Responsabilidad |
+|---|---|---|
+| Entrada | `web`, `cli` (y más adelante la API REST) | Mostrar pantallas, leer comandos; no contiene reglas de negocio |
+| Servicios | `services` | Casos de uso y reglas de negocio |
+| Persistencia | `db` | Modelo de datos, sesiones y migraciones |
+
+Así, una misma regla (por ejemplo, cómo se valida un usuario nuevo) se aplica igual desde la
+pantalla, desde la terminal o desde la API.
+
 ### mes-gateway
 
 Servicio instalado en la computadora de cada estación. Ejecuta las recetas paso a paso contra el
@@ -59,6 +70,8 @@ código que comparten los demás componentes.
 | Interfaz web | NiceGUI |
 | Base de datos | SQLite (configurable a PostgreSQL) |
 | Acceso a datos y migraciones | SQLModel y Alembic |
+| Contraseñas | Argon2id (`pwdlib`) |
+| Identidad visual | Paleta institucional UNAM y tipografía Inter incluida; ver [ADR 0007](adr/0007-identidad-visual.md) |
 | Gestión de paquetes y entorno | uv (workspace) |
 | Calidad | Ruff, pytest, pre-commit |
 
