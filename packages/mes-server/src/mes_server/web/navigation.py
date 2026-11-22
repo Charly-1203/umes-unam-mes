@@ -97,6 +97,15 @@ MODULES: tuple[Module, ...] = (
         "group",
         "Usuarios y roles.",
         Permission.MANAGE_USERS,
+        available=True,
+    ),
+    Module(
+        "/admin",
+        "Administración",
+        "admin_panel_settings",
+        "Respaldos, reinicio de curso y bitácora.",
+        Permission.ADMINISTER_SYSTEM,
+        available=True,
     ),
 )
 """Every section of the application, in menu order."""

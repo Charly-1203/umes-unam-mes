@@ -9,17 +9,20 @@ laboratory server and in tests without editing files.
 | ``MES_HOST``           | ``127.0.0.1``        | Address the web server listens on            |
 | ``MES_PORT``           | ``8080``             | Port the web server listens on               |
 | ``MES_STORAGE_SECRET`` | random per start     | Secret that signs the browser session cookie |
+| ``MES_BACKUP_DIR``     | ``respaldos`` next to the database file | Folder for backups     |
 """
 
 import os
 import secrets
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from pathlib import Path
 
 ENV_DATABASE_URL = "MES_DATABASE_URL"
 ENV_HOST = "MES_HOST"
 ENV_PORT = "MES_PORT"
 ENV_STORAGE_SECRET = "MES_STORAGE_SECRET"
+ENV_BACKUP_DIR = "MES_BACKUP_DIR"
 
 DEFAULT_DATABASE_URL = "sqlite:///mes.db"
 """SQLite file named ``mes.db`` in the current working directory."""
@@ -45,6 +48,7 @@ class Settings:
         storage_secret: Secret that signs session cookies. When it is not configured a random
             one is generated, which signs every user out whenever the server restarts.
         storage_secret_is_generated: Whether ``storage_secret`` was generated at start-up.
+        backup_dir: Folder for backups; ``None`` uses ``respaldos`` next to the database file.
     """
 
     database_url: str = DEFAULT_DATABASE_URL
@@ -52,6 +56,7 @@ class Settings:
     port: int = DEFAULT_PORT
     storage_secret: str = field(default_factory=_generate_secret, repr=False)
     storage_secret_is_generated: bool = True
+    backup_dir: Path | None = None
 
     @classmethod
     def from_env(cls, environ: Mapping[str, str] | None = None) -> "Settings":
@@ -74,7 +79,24 @@ class Settings:
             port=_parse_port(env.get(ENV_PORT)),
             storage_secret=secret or _generate_secret(),
             storage_secret_is_generated=not secret,
+            backup_dir=Path(env[ENV_BACKUP_DIR]) if env.get(ENV_BACKUP_DIR) else None,
         )
+
+    def resolve_backup_dir(self, database_url: str | None = None) -> Path | None:
+        """Return the folder for backups.
+
+        Args:
+            database_url: Database whose backups are meant; defaults to :attr:`database_url`.
+
+        Returns:
+            :attr:`backup_dir` when configured, otherwise ``respaldos`` next to the SQLite
+            database file, or ``None`` when the database is not a SQLite file.
+        """
+        if self.backup_dir is not None:
+            return self.backup_dir
+        from mes_server.services.backups import default_backup_dir
+
+        return default_backup_dir(database_url or self.database_url)
 
 
 def _parse_port(value: str | None) -> int:

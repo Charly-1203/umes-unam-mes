@@ -30,6 +30,10 @@ Servidor central del MES (nivel 3 de ISA-95).
 | `mes_server.services.stations` | Estaciones |
 | `mes_server.services.downtime_reasons` | Motivos de paro |
 | `mes_server.services.validation` | Normalización de códigos y textos, verificación de permisos |
+| `mes_server.services.backups` | Respaldos de SQLite con manifiesto y verificación de integridad |
+| `mes_server.services.course_reset` | Reinicio de curso por niveles y respaldo manual |
+| `mes_server.services.audit` | Bitácora de acciones administrativas |
+| `mes_server.web.admin_pages` | Pantallas de Usuarios y Administración |
 | `mes_server.web.components` | Tablas, formularios y confirmaciones reutilizables |
 | `mes_server.web.catalog_pages` | Pantallas de catálogo y detalle de producto |
 | `mes_server.web.messages` | Mensajes de error en español |
@@ -48,4 +52,6 @@ uv run mes-server db upgrade    # crea o actualiza el esquema
 uv run mes-server db status     # muestra la revisión aplicada y la más reciente
 uv run mes-server users create-admin
 uv run mes-server serve         # http://127.0.0.1:8080
+uv run mes-server backup create
+uv run mes-server course reset --level production
 ```

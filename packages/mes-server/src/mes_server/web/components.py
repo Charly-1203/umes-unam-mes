@@ -13,7 +13,7 @@ from nicegui import ui
 from mes_server.services.errors import ServiceError
 from mes_server.web.messages import describe
 
-FieldKind = Literal["text", "textarea", "number"]
+FieldKind = Literal["text", "textarea", "number", "select", "password"]
 
 
 # ---------------------------------------------------------------------------------------------
@@ -155,6 +155,20 @@ def icon_button(
 # ---------------------------------------------------------------------------------------------
 # Forms and confirmations
 # ---------------------------------------------------------------------------------------------
+def _open_and_dispose(dialog: ui.dialog) -> None:
+    """Open a dialog and remove it from the page once it closes.
+
+    Without this, every closed dialog would stay in the page and keep growing it.
+    """
+
+    def dispose(event: Any) -> None:
+        if not event.value:
+            dialog.delete()
+
+    dialog.on_value_change(dispose)
+    dialog.open()
+
+
 @dataclass(frozen=True, slots=True)
 class Field:
     """One input of a :func:`form_dialog`.
@@ -163,9 +177,10 @@ class Field:
         name: Key of the value in the dictionary passed to the save function; it must match
             the ``field`` reported by service errors so they appear under this input.
         label: Text shown on the input.
-        kind: ``"text"``, ``"textarea"`` or ``"number"``.
+        kind: ``"text"``, ``"textarea"``, ``"number"``, ``"select"`` or ``"password"``.
         read_only: Show the value but do not allow changing it.
         hint: Help text shown under the input.
+        options: For ``"select"``: values mapped to the text shown for each.
     """
 
     name: str
@@ -173,6 +188,7 @@ class Field:
     kind: FieldKind = "text"
     read_only: bool = False
     hint: str | None = None
+    options: dict[str, str] | None = None
 
 
 def form_dialog(
@@ -200,7 +216,7 @@ def form_dialog(
         The open dialog.
     """
     values = initial or {}
-    inputs: dict[str, ui.input | ui.textarea | ui.number] = {}
+    inputs: dict[str, ui.input | ui.textarea | ui.number | ui.select] = {}
 
     with ui.dialog() as dialog, ui.card().classes("mes-dialog"):
         ui.label(title).classes("mes-dialog-title")
@@ -208,6 +224,12 @@ def form_dialog(
             value = values.get(field.name)
             if field.kind == "number":
                 element = ui.number(field.label, value=value)
+            elif field.kind == "select":
+                element = ui.select(field.options or {}, label=field.label, value=value)
+            elif field.kind == "password":
+                element = ui.input(
+                    field.label, value=value or "", password=True, password_toggle_button=True
+                )
             elif field.kind == "textarea":
                 element = ui.textarea(field.label, value=value or "").props("autogrow")
             else:
@@ -237,7 +259,7 @@ def form_dialog(
         with ui.row().classes("w-full justify-end gap-2 pt-2"):
             ui.button("Cancelar", on_click=dialog.close).props("flat no-caps").mark("dialog-cancel")
             ui.button(save_label, on_click=save).props("unelevated no-caps").mark("dialog-save")
-    dialog.open()
+    _open_and_dispose(dialog)
     return dialog
 
 
@@ -279,7 +301,7 @@ def confirm_dialog(
             ui.button(confirm_label, on_click=confirm).props(
                 f"unelevated no-caps color={color}"
             ).mark("dialog-confirm")
-    dialog.open()
+    _open_and_dispose(dialog)
     return dialog
 
 
@@ -300,5 +322,5 @@ def info_dialog(title: str, message: str) -> ui.dialog:
             ui.button("Entendido", on_click=dialog.close).props("unelevated no-caps").mark(
                 "dialog-ok"
             )
-    dialog.open()
+    _open_and_dispose(dialog)
     return dialog

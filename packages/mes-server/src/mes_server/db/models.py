@@ -446,7 +446,32 @@ class DowntimeEvent(SQLModel, table=True):
         self.ended_at = end
 
 
+# ---------------------------------------------------------------------------------------------
+# Audit
+# ---------------------------------------------------------------------------------------------
+class AuditEntry(SQLModel, table=True):
+    """Record of an administrative action, such as a backup or a course reset.
+
+    The actor is stored as text, not as a reference to ``users``, so the entry survives when
+    the user is deleted. Entries are never modified and are kept by every course reset.
+
+    Attributes:
+        actor: Username of who performed the action, or ``"terminal"`` for the command line.
+        action: Stable action identifier, such as ``"course_reset"``.
+        detail: Additional data about the action.
+    """
+
+    __tablename__ = "audit_entries"
+
+    id: int | None = Field(default=None, primary_key=True)
+    created_at: datetime = Field(default_factory=utc_now, sa_type=UTCDateTime, index=True)
+    actor: str = Field(max_length=64)
+    action: str = Field(max_length=64, index=True)
+    detail: dict[str, Any] = Field(default_factory=dict, sa_column=_json_column())
+
+
 __all__ = [
+    "AuditEntry",
     "BomItem",
     "DowntimeEvent",
     "DowntimeReason",
