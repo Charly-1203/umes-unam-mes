@@ -17,6 +17,7 @@ mensajes, enumeraciones y utilidades.
 | `mes_core.enums` | Roles, estados de receta, orden y unidad, y resultado de un paso |
 | `mes_core.lifecycle` | Transiciones de estado permitidas y su validación |
 | `mes_core.limits` | Límites de aceptación de parámetros y evaluación OK/NOK |
+| `mes_core.permissions` | Permisos y qué rol tiene cada uno |
 | `mes_core.clock` | Hora actual en UTC |
 
 ```python

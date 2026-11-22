@@ -2,10 +2,12 @@ import subprocess
 import sys
 
 import pytest
+from sqlmodel import Session, select
 
 from mes_server import __version__
 from mes_server.cli import display_url, main
-from mes_server.db import migrate
+from mes_server.db import create_db_engine, migrate
+from mes_server.db.models import User
 
 
 def test_main_without_arguments_prints_name_and_version(capsys):
@@ -73,3 +75,106 @@ def test_display_url_hides_password():
 
 def test_display_url_keeps_sqlite_path():
     assert display_url("sqlite:///mes.db") == "sqlite:///mes.db"
+
+
+# ---------------------------------------------------------------------------------------------
+# users
+# ---------------------------------------------------------------------------------------------
+def answers(*values):
+    remaining = list(values)
+    return lambda _prompt: remaining.pop(0)
+
+
+@pytest.fixture
+def upgraded_db(file_db_url):
+    migrate.upgrade(file_db_url)
+    return file_db_url
+
+
+def test_create_admin_creates_an_administrator(upgraded_db, capsys):
+    code = main(
+        ["users", "create-admin", "--database-url", upgraded_db],
+        prompt=answers("secret123", "secret123"),
+    )
+    assert code == 0
+    assert "User 'admin' created with role 'admin'." in capsys.readouterr().out
+    main(["users", "list", "--database-url", upgraded_db])
+    assert "admin" in capsys.readouterr().out
+
+
+def test_create_admin_accepts_a_custom_username(upgraded_db, capsys):
+    main(
+        ["users", "create-admin", "--database-url", upgraded_db, "--username", "Root.User"],
+        prompt=answers("secret123", "secret123"),
+    )
+    assert "User 'root.user' created" in capsys.readouterr().out
+
+
+def test_create_user_with_a_role(upgraded_db, capsys):
+    code = main(
+        [
+            "users", "create", "--database-url", upgraded_db,
+            "--username", "op1", "--full-name", "Operator One", "--role", "operator",
+        ],
+        prompt=answers("secret123", "secret123"),
+    )  # fmt: skip
+    assert code == 0
+    main(["users", "list", "--database-url", upgraded_db])
+    line = next(line for line in capsys.readouterr().out.splitlines() if line.startswith("op1"))
+    assert "operator" in line
+    assert "Operator One" in line
+
+
+def test_create_user_rejects_unknown_role(upgraded_db):
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "users", "create", "--database-url", upgraded_db,
+                "--username", "x1", "--full-name", "X", "--role", "superuser",
+            ]
+        )  # fmt: skip
+
+
+def test_mismatched_passwords_are_rejected(upgraded_db, capsys):
+    code = main(
+        ["users", "create-admin", "--database-url", upgraded_db],
+        prompt=answers("secret123", "different1"),
+    )
+    assert code == 1
+    assert "do not match" in capsys.readouterr().err
+
+
+def test_weak_password_is_reported(upgraded_db, capsys):
+    code = main(
+        ["users", "create-admin", "--database-url", upgraded_db], prompt=answers("short", "short")
+    )
+    assert code == 1
+    assert "at least" in capsys.readouterr().err
+
+
+def test_duplicate_user_is_reported(upgraded_db, capsys):
+    args = ["users", "create-admin", "--database-url", upgraded_db]
+    main(args, prompt=answers("secret123", "secret123"))
+    assert main(args, prompt=answers("secret123", "secret123")) == 1
+    assert "already exists" in capsys.readouterr().err
+
+
+def test_users_commands_require_an_up_to_date_schema(file_db_url, capsys):
+    assert main(["users", "list", "--database-url", file_db_url]) == 1
+    assert "mes-server db upgrade" in capsys.readouterr().err
+
+
+def test_inactive_users_are_listed_as_inactive(upgraded_db, capsys):
+    main(
+        ["users", "create-admin", "--database-url", upgraded_db],
+        prompt=answers("secret123", "secret123"),
+    )
+    engine = create_db_engine(upgraded_db)
+    with Session(engine) as session:
+        user = session.exec(select(User)).one()
+        user.is_active = False
+        session.commit()
+    engine.dispose()
+    capsys.readouterr()
+    main(["users", "list", "--database-url", upgraded_db])
+    assert "inactive" in capsys.readouterr().out

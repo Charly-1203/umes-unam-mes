@@ -7,6 +7,8 @@ requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20",
     "mes-core",
+    "nicegui>=4.0",
+    "pwdlib[argon2]>=0.4.2",
     "sqlmodel>=0.0.50",
 ]
 

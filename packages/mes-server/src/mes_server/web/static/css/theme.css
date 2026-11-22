@@ -1,0 +1,384 @@
+/*
+ * UNAM-MES visual theme.
+ *
+ * Institutional colors follow the UNAM graphic identity manual:
+ *   Azul UNAM  #013B75  (Pantone 540)
+ *   Oro UNAM   #D9A500  (Pantone 117)
+ * Gold is used for accents only: it does not reach readable contrast as text on white.
+ */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/static/fonts/inter-latin-wght-normal.woff2") format("woff2");
+}
+
+:root {
+  --mes-primary: #013b75;
+  --mes-primary-dark: #012a57;
+  --mes-primary-tint: #e6edf6;
+  --mes-accent: #d9a500;
+  --mes-accent-text: #7a5a00;
+  --mes-background: #f1f4f9;
+  --mes-surface: #ffffff;
+  --mes-text: #0f172a;
+  --mes-text-muted: #4a5568;
+  --mes-text-on-primary: #ffffff;
+  --mes-text-on-primary-muted: #c9d5ee;
+  --mes-border: #e2e8f0;
+  --mes-radius: 12px;
+  --mes-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--mes-text);
+  background: var(--mes-background);
+}
+
+/* NiceGUI wraps page content in a padded column; the theme manages spacing itself. */
+.nicegui-content {
+  padding: 0;
+  gap: 0;
+  align-items: stretch;
+}
+
+.nicegui-sub-pages {
+  width: 100%;
+  align-items: stretch;
+}
+
+/* ---------------------------------------------------------------------------------------- */
+/* Sign-in                                                                                  */
+/* ---------------------------------------------------------------------------------------- */
+.mes-login {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.mes-login-hero {
+  flex: 1 1 460px;
+  background: var(--mes-primary);
+  color: var(--mes-text-on-primary);
+  padding: 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.mes-login-hero h1 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.mes-login-hero p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--mes-text-on-primary-muted);
+}
+
+.mes-login-panel {
+  flex: 1 1 420px;
+  background: var(--mes-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.mes-login-form {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.mes-accent-bar {
+  width: 56px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--mes-accent);
+}
+
+.mes-level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 3px solid transparent;
+}
+
+.mes-level--active {
+  background: rgba(255, 255, 255, 0.12);
+  border-left-color: var(--mes-accent);
+}
+
+.mes-level-number {
+  width: 64px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mes-text-on-primary-muted);
+}
+
+.mes-notice {
+  background: #fbf1d6;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--mes-text);
+}
+
+/* ---------------------------------------------------------------------------------------- */
+/* Application frame                                                                        */
+/* ---------------------------------------------------------------------------------------- */
+.mes-drawer {
+  background: var(--mes-primary);
+  color: var(--mes-text-on-primary);
+}
+
+.mes-drawer .q-drawer__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px 14px;
+}
+
+.mes-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 6px;
+}
+
+.mes-brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--mes-accent);
+  color: var(--mes-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.mes-brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.mes-brand-name {
+  font-weight: 800;
+  font-size: 17px;
+}
+
+.mes-brand-unit {
+  font-size: 11px;
+  color: var(--mes-text-on-primary-muted);
+}
+
+.mes-nav-item {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--mes-text-on-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+.mes-nav-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 1;
+}
+
+.mes-nav-item--active {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 3px 0 0 var(--mes-accent);
+  font-weight: 700;
+  opacity: 1;
+}
+
+.mes-user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mes-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--mes-accent);
+  color: var(--mes-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  flex: none;
+}
+
+.mes-topbar {
+  background: var(--mes-surface);
+  border-bottom: 1px solid var(--mes-border);
+  min-height: 64px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--mes-text-muted);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mes-topbar-current {
+  color: var(--mes-text);
+  font-weight: 600;
+}
+
+.mes-page {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mes-page-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 28px;
+}
+
+.mes-page-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--mes-text-muted);
+}
+
+/* ---------------------------------------------------------------------------------------- */
+/* Content blocks                                                                           */
+/* ---------------------------------------------------------------------------------------- */
+.mes-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.mes-module-card {
+  background: var(--mes-surface);
+  border-radius: var(--mes-radius);
+  padding: 18px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  box-shadow: var(--mes-shadow);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.mes-module-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08), 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.mes-module-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--mes-primary);
+  color: var(--mes-text-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mes-module-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.mes-module-description {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--mes-text-muted);
+}
+
+.mes-badge-wip {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mes-accent-text);
+}
+
+.mes-panel {
+  background: var(--mes-surface);
+  border-radius: var(--mes-radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--mes-shadow);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mes-panel-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.mes-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 28px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--mes-text-muted);
+}
+
+/* ---------------------------------------------------------------------------------------- */
+/* Small screens                                                                            */
+/* ---------------------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .mes-login-hero {
+    padding: 32px 24px;
+    gap: 24px;
+  }
+
+  .mes-login-hero h1 {
+    font-size: 28px;
+  }
+
+  .mes-topbar,
+  .mes-page {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
