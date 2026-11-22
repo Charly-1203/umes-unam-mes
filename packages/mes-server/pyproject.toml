@@ -1,0 +1,22 @@
+[project]
+name = "mes-server"
+version = "0.1.0"
+description = "MES server: web application, REST API and persistence."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mes-core",
+]
+
+[project.scripts]
+mes-server = "mes_server.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.33"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mes_server"]
+
+[tool.uv.sources]
+mes-core = { workspace = true }

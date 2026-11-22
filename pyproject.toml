@@ -1,0 +1,78 @@
+[project]
+name = "unam-mes"
+version = "0.1.0"
+description = "Educational Manufacturing Execution System (MES) for the UNAM Automation Laboratory."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mes-core",
+    "mes-server",
+    "mes-gateway",
+    "mes-erp-sim",
+]
+
+[dependency-groups]
+dev = [
+    "packaging>=25.0",
+    "pre-commit>=4.7",
+    "pytest>=9.2",
+    "pytest-cov>=7.0",
+    "ruff>=0.17.5",
+]
+
+[tool.uv]
+# The workspace root is not an installable package; it only groups the members.
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+mes-core = { workspace = true }
+mes-server = { workspace = true }
+mes-gateway = { workspace = true }
+mes-erp-sim = { workspace = true }
+
+# ---------------------------------------------------------------------------
+# Ruff: linting and formatting
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["packages/*/src", "packages/*/tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "D",   # pydocstyle
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests document themselves through their names.
+"packages/*/tests/**" = ["D"]
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["packages"]
+addopts = ["--import-mode=importlib", "-ra", "--strict-markers"]
+
+[tool.coverage.run]
+source_pkgs = ["mes_core", "mes_server", "mes_gateway", "mes_erp_sim"]
+branch = true
+omit = ["*/__main__.py"]  # exercised through a subprocess in the CLI tests
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

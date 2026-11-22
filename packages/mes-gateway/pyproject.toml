@@ -1,0 +1,22 @@
+[project]
+name = "mes-gateway"
+version = "0.1.0"
+description = "Station gateway: executes recipes against the PLC and reports to the MES."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mes-core",
+]
+
+[project.scripts]
+mes-gateway = "mes_gateway.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.33"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mes_gateway"]
+
+[tool.uv.sources]
+mes-core = { workspace = true }
