@@ -1,0 +1,22 @@
+[project]
+name = "mes-erp-sim"
+version = "0.1.0"
+description = "ERP simulator: sends production orders and bills of materials to the MES."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mes-core",
+]
+
+[project.scripts]
+mes-erp-sim = "mes_erp_sim.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.33"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mes_erp_sim"]
+
+[tool.uv.sources]
+mes-core = { workspace = true }
