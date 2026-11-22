@@ -138,6 +138,7 @@ Mientras no existan, la aplicación muestra un ícono genérico.
 | Modelo de dominio | Estados, ciclos de vida, límites, modelo de datos y migraciones | Listo |
 | Acceso | Inicio de sesión, roles, permisos y menú por rol | Listo |
 | Identidad visual | Paleta UNAM, tipografía, menú lateral y pantallas responsivas | Listo |
+| Catálogos | Productos con lista de materiales, estaciones y motivos de paro | Listo |
 
 Las funcionalidades se incorporan por etapas; consulta [CONTRIBUTING.md](CONTRIBUTING.md) para
 el flujo de trabajo.

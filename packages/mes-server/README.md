@@ -25,6 +25,14 @@ Servidor central del MES (nivel 3 de ISA-95).
 |---|---|
 | `mes_server.auth` | Hash y verificación de contraseñas (Argon2id) |
 | `mes_server.services.users` | Alta de usuarios, validaciones e inicio de sesión |
+| `mes_server.services.catalog` | Reglas comunes de catálogos: código único, referencias y borrado protegido |
+| `mes_server.services.products` | Productos y su lista de materiales |
+| `mes_server.services.stations` | Estaciones |
+| `mes_server.services.downtime_reasons` | Motivos de paro |
+| `mes_server.services.validation` | Normalización de códigos y textos, verificación de permisos |
+| `mes_server.web.components` | Tablas, formularios y confirmaciones reutilizables |
+| `mes_server.web.catalog_pages` | Pantallas de catálogo y detalle de producto |
+| `mes_server.web.messages` | Mensajes de error en español |
 | `mes_server.web.app` | Página raíz: decide entre inicio de sesión y la aplicación |
 | `mes_server.web.navigation` | Secciones, su permiso requerido y nombres de los roles |
 | `mes_server.web.pages` | Pantallas: inicio de sesión, marco común, inicio y secciones |

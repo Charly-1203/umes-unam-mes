@@ -20,3 +20,4 @@ sus consecuencias. Permiten entender, tiempo después, por qué el sistema es co
 | [0005](0005-persistencia-con-sqlite-sqlmodel-y-alembic.md) | Persistencia con SQLite, SQLModel y Alembic | Aceptado |
 | [0006](0006-autenticacion-y-permisos-por-rol.md) | Autenticación y permisos por rol | Aceptado |
 | [0007](0007-identidad-visual.md) | Identidad visual | Aceptado |
+| [0008](0008-desactivar-y-borrar-catalogos.md) | Desactivar y borrar registros de catálogo | Aceptado |

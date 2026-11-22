@@ -46,7 +46,9 @@ def validate_username(username: str) -> str:
     if not USERNAME_PATTERN.match(normalized):
         raise ValidationError(
             "Username must be 3-64 characters: lowercase letters, digits, '.', '_' or '-', "
-            "starting with a letter or digit."
+            "starting with a letter or digit.",
+            code="username_format",
+            field="username",
         )
     return normalized
 
@@ -61,7 +63,11 @@ def validate_password(password: str) -> None:
         ValidationError: If the password is too short or blank.
     """
     if len(password) < MIN_PASSWORD_LENGTH or not password.strip():
-        raise ValidationError(f"Password must have at least {MIN_PASSWORD_LENGTH} characters.")
+        raise ValidationError(
+            f"Password must have at least {MIN_PASSWORD_LENGTH} characters.",
+            code="password_too_short",
+            field="password",
+        )
 
 
 def get_user_by_username(session: Session, username: str) -> User | None:
@@ -105,9 +111,9 @@ def create_user(
     normalized = validate_username(username)
     validate_password(password)
     if not full_name.strip():
-        raise ValidationError("Full name must not be blank.")
+        raise ValidationError("Full name must not be blank.", code="blank", field="full_name")
     if get_user_by_username(session, normalized) is not None:
-        raise AlreadyExistsError(f"User '{normalized}' already exists.")
+        raise AlreadyExistsError(f"User '{normalized}' already exists.", field="username")
 
     user = User(
         username=normalized,

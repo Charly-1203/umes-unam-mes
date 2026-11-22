@@ -5,9 +5,11 @@ from collections.abc import Callable
 from nicegui import ui
 from sqlalchemy import Engine
 
-from mes_server.web import pages, theme
+from mes_core.permissions import has_permission
+from mes_server.db.models import User
+from mes_server.web import catalog_pages, pages, theme
 from mes_server.web import session as web_session
-from mes_server.web.navigation import MODULES
+from mes_server.web.navigation import MODULES, Module, find_module
 
 
 def build_root(engine: Engine) -> Callable[[], None]:
@@ -31,18 +33,46 @@ def build_root(engine: Engine) -> Callable[[], None]:
             return
 
         shell = pages.layout(user)
-        routes: dict[str, Callable[[], None]] = {
+
+        def section(module: Module, build: Callable[[], None] | None = None) -> None:
+            """Show a section, or the access-denied message if the role lacks permission."""
+            if not has_permission(user.role, module.permission):
+                pages.access_denied()
+            elif build is not None:
+                build()
+            elif module.path in SCREENS:
+                SCREENS[module.path](engine, user)
+            else:
+                pages.module_page(module, user)
+
+        routes: dict[str, Callable[..., None]] = {
             pages.HOME_PATH: lambda: shell.show(
                 pages.HOME_PATH, pages.HOME_TITLE, lambda: pages.home_page(user)
             )
         }
         for module in MODULES:
-            routes[module.path] = lambda m=module: shell.show(
-                m.path, m.title, lambda: pages.module_page(m, user)
-            )
+            routes[module.path] = lambda m=module: shell.show(m.path, m.title, lambda: section(m))
+
+        products_module = find_module("/products")
+        routes["/products/{product_id}"] = lambda product_id: shell.show(
+            products_module.path,
+            products_module.title,
+            lambda: section(
+                products_module,
+                lambda: catalog_pages.product_detail_page(engine, user, product_id),
+            ),
+        )
         ui.sub_pages(routes)
 
     return root
+
+
+SCREENS: dict[str, Callable[[Engine, User], None]] = {
+    "/products": catalog_pages.products_page,
+    "/stations": catalog_pages.stations_page,
+    "/downtime-reasons": catalog_pages.downtime_reasons_page,
+}
+"""Sections that already have a screen; the rest show the under-construction message."""
 
 
 def run(
