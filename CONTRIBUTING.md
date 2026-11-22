@@ -58,6 +58,21 @@ comunican con el servidor solo por mensajes o por su API, nunca importando su c�
 - El nombre de cada prueba describe el comportamiento esperado.
 - Toda funcionalidad nueva incluye sus pruebas en el mismo pull request.
 
+### Cambios al modelo de datos
+
+Todo cambio en `mes_server/db/models.py` va acompañado de una migración en el mismo pull
+request. Desde la raíz del repositorio:
+
+```powershell
+uv run mes-server db upgrade                     # deja tu base local al día
+uv run alembic -c packages/mes-server/alembic.ini revision --autogenerate -m "describe el cambio"
+uv run mes-server db upgrade                     # aplica la nueva migración
+```
+
+Revisa siempre el archivo generado en `db/migrations/versions/` antes de confirmarlo: Alembic
+no detecta todo (por ejemplo, renombrar una columna lo interpreta como borrar y crear). La prueba
+`test_migrations_match_the_models` falla si el modelo y las migraciones no coinciden.
+
 ### Agregar una dependencia
 
 ```powershell

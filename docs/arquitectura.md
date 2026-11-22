@@ -57,11 +57,13 @@ código que comparten los demás componentes.
 |---|---|
 | Lenguaje | Python 3.13 |
 | Interfaz web | NiceGUI |
+| Base de datos | SQLite (configurable a PostgreSQL) |
+| Acceso a datos y migraciones | SQLModel y Alembic |
 | Gestión de paquetes y entorno | uv (workspace) |
 | Calidad | Ruff, pytest, pre-commit |
 
-Las tecnologías de persistencia, mensajería y comunicación con el PLC se registrarán como ADR al
-incorporarse.
+Las tecnologías de mensajería y comunicación con el PLC se registrarán como ADR al incorporarse.
+El modelo de datos está descrito en [modelo-de-datos.md](modelo-de-datos.md).
 
 ## Principios de diseño
 
